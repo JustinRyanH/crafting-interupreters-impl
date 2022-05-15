@@ -20,24 +20,28 @@ impl fmt::Display for LuxError {
 
 impl Error for LuxError {}
 
-fn run(_script: String) -> Result<(), LuxError> {
-    Err(LuxError::Unimplemented)
-}
+pub struct LuxEntry;
 
-fn run_file(file: &str) -> Result<(), LuxError> {
-    let contents = fs::read_to_string(file).map_err(LuxError::Io)?;
-    run(contents)
-}
+impl LuxEntry {
+    fn run(_script: String) -> Result<(), LuxError> {
+        Err(LuxError::Unimplemented)
+    }
 
-fn run_prompt() -> Result<(), LuxError> {
-    Ok(())
+    fn run_file(file: &str) -> Result<(), LuxError> {
+        let contents = fs::read_to_string(file).map_err(LuxError::Io)?;
+        LuxEntry::run(contents)
+    }
+
+    fn run_prompt() -> Result<(), LuxError> {
+        Err(LuxError::Unimplemented)
+    }
 }
 
 fn main() -> Result<(), LuxError> {
     let arguments: Vec<String> = env::args().skip(1).collect();
     match arguments.len() {
-        0 => run_prompt(),
-        1 => run_file(&arguments[0]),
+        0 => LuxEntry::run_prompt(),
+        1 => LuxEntry::run_file(&arguments[0]),
         _ => {
             println!("Usage: rlox [script]");
             Err(LuxError::AppError("Too many arguments".into()))
