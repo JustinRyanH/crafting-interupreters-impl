@@ -1,23 +1,32 @@
 use core::fmt;
-use std::{env, error::Error};
+use std::{env, error::Error, fs};
 
 #[derive(Debug)]
 enum LuxError {
-    AppError(&'static str),
+    Io(std::io::Error),
+    AppError(String),
+    Unimplemented,
 }
 
 impl fmt::Display for LuxError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             LuxError::AppError(err) => write!(f, "AppError: {}", err),
+            LuxError::Unimplemented => write!(f, "Unimplemented"),
+            LuxError::Io(err) => err.fmt(f),
         }
     }
 }
 
 impl Error for LuxError {}
 
-fn run_file(_file: &str) -> Result<(), LuxError> {
-    Ok(())
+fn run(_script: String) -> Result<(), LuxError> {
+    Err(LuxError::Unimplemented)
+}
+
+fn run_file(file: &str) -> Result<(), LuxError> {
+    let contents = fs::read_to_string(file).map_err(LuxError::Io)?;
+    run(contents)
 }
 
 fn run_prompt() -> Result<(), LuxError> {
@@ -31,7 +40,7 @@ fn main() -> Result<(), LuxError> {
         1 => run_file(&arguments[0]),
         _ => {
             println!("Usage: rlox [script]");
-            Err(LuxError::AppError("Too many arguments"))
+            Err(LuxError::AppError("Too many arguments".into()))
         }
     }
 }
