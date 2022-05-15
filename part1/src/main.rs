@@ -1,5 +1,10 @@
 use core::fmt;
-use std::{env, error::Error, fs};
+use std::{
+    env,
+    error::Error,
+    fs,
+    io::{self, BufRead, Write},
+};
 
 #[derive(Debug)]
 enum LuxError {
@@ -23,17 +28,37 @@ impl Error for LuxError {}
 pub struct LuxEntry;
 
 impl LuxEntry {
-    fn run(_script: String) -> Result<(), LuxError> {
+    fn run(_script: &String) -> Result<(), LuxError> {
         Err(LuxError::Unimplemented)
     }
 
     fn run_file(file: &str) -> Result<(), LuxError> {
         let contents = fs::read_to_string(file).map_err(LuxError::Io)?;
-        LuxEntry::run(contents)
+        LuxEntry::run(&contents)
     }
 
     fn run_prompt() -> Result<(), LuxError> {
-        Err(LuxError::Unimplemented)
+        let mut buffer = String::new();
+        loop {
+            {
+                let stdout = io::stdout();
+                let mut handle = stdout.lock();
+                handle.write_all(b"> ").map_err(LuxError::Io)?;
+                handle.flush().map_err(LuxError::Io)?;
+            }
+            let len = {
+                let stdin = io::stdin();
+                let mut handle = stdin.lock();
+                handle.read_line(&mut buffer).map_err(LuxError::Io)?
+            };
+            if len == 0 {
+                break;
+            };
+            buffer.clear();
+            LuxEntry::run(&buffer)?;
+        }
+        println!("\nDone");
+        Ok(())
     }
 }
 
