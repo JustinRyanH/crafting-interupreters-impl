@@ -40,26 +40,34 @@ impl LuxEntry {
     fn run_prompt() -> Result<(), LuxError> {
         let mut buffer = String::new();
         loop {
-            {
-                let stdout = io::stdout();
-                let mut handle = stdout.lock();
-                handle.write_all(b"> ").map_err(LuxError::Io)?;
-                handle.flush().map_err(LuxError::Io)?;
-            }
-            let len = {
-                let stdin = io::stdin();
-                let mut handle = stdin.lock();
-                handle.read_line(&mut buffer).map_err(LuxError::Io)?
-            };
+            print_cmd_carot()?;
+            let len = listen_for_code(&mut buffer)?;
             if len == 0 {
                 break;
             };
-            buffer.clear();
             LuxEntry::run(&buffer)?;
+            buffer.clear();
         }
         println!("\nDone");
         Ok(())
     }
+}
+
+fn listen_for_code(buffer: &mut String) -> Result<usize, LuxError> {
+    let len = {
+        let stdin = io::stdin();
+        let mut handle = stdin.lock();
+        handle.read_line(buffer).map_err(LuxError::Io)?
+    };
+    Ok(len)
+}
+
+fn print_cmd_carot() -> Result<(), LuxError> {
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+    handle.write_all(b"> ").map_err(LuxError::Io)?;
+    handle.flush().map_err(LuxError::Io)?;
+    Ok(())
 }
 
 fn main() -> Result<(), LuxError> {
