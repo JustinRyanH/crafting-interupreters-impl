@@ -16,10 +16,19 @@ impl fmt::Display for LuxError {
 
 impl Error for LuxError {}
 
+fn run_file(_file: &str) -> Result<(), LuxError> {
+    Ok(())
+}
+
+fn run_prompt() -> Result<(), LuxError> {
+    Ok(())
+}
+
 fn main() -> Result<(), LuxError> {
-    match env::args().skip(1).count() {
-        0 => Ok(()),
-        1 => Ok(()),
+    let arguments: Vec<String> = env::args().skip(1).collect();
+    match arguments.len() {
+        0 => run_prompt(),
+        1 => run_file(&arguments[0]),
         _ => {
             println!("Usage: rlox [script]");
             Err(LuxError::AppError("Too many arguments"))
